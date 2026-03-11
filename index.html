@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEO CVN BFM Snapshot Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #dbe3ee;
+      --accent: #1d4ed8;
+      --accent-2: #0f766e;
+      --warn: #d97706;
+      --danger: #b91c1c;
+      --success-bg: #dcfce7;
+      --success-text: #166534;
+      --watch-bg: #fef3c7;
+      --watch-text: #92400e;
+      --behind-bg: #fee2e2;
+      --behind-text: #991b1b;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    h1 {
+      margin: 0 0 6px 0;
+      font-size: 32px;
+    }
+    .sub {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .search {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      min-width: 300px;
+      font-size: 14px;
+    }
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+    .cards {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    }
+    .label {
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .value {
+      font-size: 30px;
+      font-weight: 700;
+    }
+    .note {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    .charts {
+      grid-template-columns: 2fr 1fr;
+      margin-bottom: 16px;
+    }
+    .chart-box {
+      height: 380px;
+    }
+    .table-wrap {
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: middle;
+    }
+    th {
+      background: #eef3f9;
+      font-size: 13px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .ontrack { background: var(--success-bg); color: var(--success-text); }
+    .watch { background: var(--watch-bg); color: var(--watch-text); }
+    .behind { background: var(--behind-bg); color: var(--behind-text); }
+    .bar {
+      width: 140px;
+      height: 10px;
+      background: #e5edf7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 999px;
+    }
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: white;
+      border-radius: 10px;
+      padding: 10px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn:hover { background: #f8fafc; }
+    @media (max-width: 1000px) {
+      .cards, .charts { grid-template-columns: 1fr; }
+      .chart-box { height: 320px; }
+      .search { min-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <h1>PEO CVN BFM Snapshot Dashboard</h1>
+        <div class="sub">Management view of available balances, execution status, and project-level performance.</div>
+      </div>
+      <input id="searchInput" class="search" type="text" placeholder="Search project code, name, or status" />
+    </div>
+
+    <div class="grid cards">
+      <div class="card">
+        <div class="label">Total Requirements</div>
+        <div class="value" id="totalRequirements"></div>
+        <div class="note" id="projectCount"></div>
+      </div>
+      <div class="card">
+        <div class="label">Available Balance</div>
+        <div class="value" id="availableBalance"></div>
+        <div class="note">Requirements less obligations</div>
+      </div>
+      <div class="card">
+        <div class="label">Obligation Rate</div>
+        <div class="value" id="obligationRate"></div>
+        <div class="note">Obligations as a percent of requirements</div>
+      </div>
+      <div class="card">
+        <div class="label">Projects Requiring Attention</div>
+        <div class="value" id="attentionCount"></div>
+        <div class="note">Watch and Behind statuses</div>
+      </div>
+    </div>
+
+    <div class="grid charts">
+      <div class="card">
+        <div class="label">Available Balance by Project Code</div>
+        <div class="chart-box"><canvas id="balanceChart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="label">Execution Status Mix</div>
+        <div class="chart-box"><canvas id="statusChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="toolbar">
+        <div>
+          <div class="label" style="margin-bottom:4px; color: var(--text); font-size:18px;">Project Code Snapshot</div>
+          <div class="sub">Update the data array in the HTML file with your real numbers.</div>
+        </div>
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Project Code</th>
+              <th>Project Name</th>
+              <th>Requirements</th>
+              <th>Commitments</th>
+              <th>Obligations</th>
+              <th>Expenditures</th>
+              <th>Available Balance</th>
+              <th>Execution %</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DATA = [
+      { projectCode: "1A1", projectName: "CVN Planning", requirements: 4200000, commitments: 3100000, obligations: 2800000, expenditures: 1950000, status: "On Track" },
+      { projectCode: "1A2", projectName: "Modernization Support", requirements: 5800000, commitments: 4600000, obligations: 4150000, expenditures: 3300000, status: "Watch" },
+      { projectCode: "1A3", projectName: "Technical Studies", requirements: 3100000, commitments: 1800000, obligations: 1400000, expenditures: 920000, status: "Behind" },
+      { projectCode: "1A4", projectName: "Training and Travel", requirements: 1200000, commitments: 900000, obligations: 760000, expenditures: 525000, status: "On Track" },
+      { projectCode: "1A5", projectName: "Program Integration", requirements: 6900000, commitments: 5150000, obligations: 4720000, expenditures: 3880000, status: "Watch" },
+      { projectCode: "1A6", projectName: "Fleet Support", requirements: 2500000, commitments: 2000000, obligations: 1780000, expenditures: 1210000, status: "On Track" },
+      { projectCode: "1A7", projectName: "Special Projects", requirements: 4700000, commitments: 2400000, obligations: 2010000, expenditures: 980000, status: "Behind" }
+    ];
+
+    function currency(value) {
+      return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(value || 0);
+    }
+
+    function percent(value) {
+      return `${(value || 0).toFixed(1)}%`;
+    }
+
+    function normalize(row) {
+      const availableBalance = Math.max((row.requirements || 0) - (row.obligations || 0), 0);
+      const obligationRate = row.requirements ? (row.obligations / row.requirements) * 100 : 0;
+      return { ...row, availableBalance, obligationRate };
+    }
+
+    const normalizedData = DATA.map(normalize);
+    let balanceChart;
+    let statusChart;
+
+    function render(filtered) {
+      const totalRequirements = filtered.reduce((a, b) => a + b.requirements, 0);
+      const totalObligations = filtered.reduce((a, b) => a + b.obligations, 0);
+      const totalAvailable = filtered.reduce((a, b) => a + b.availableBalance, 0);
+      const attentionCount = filtered.filter(x => x.status !== "On Track").length;
+      const obligationRate = totalRequirements ? (totalObligations / totalRequirements) * 100 : 0;
+
+      document.getElementById("totalRequirements").textContent = currency(totalRequirements);
+      document.getElementById("availableBalance").textContent = currency(totalAvailable);
+      document.getElementById("obligationRate").textContent = percent(obligationRate);
+      document.getElementById("attentionCount").textContent = attentionCount;
+      document.getElementById("projectCount").textContent = `Across ${filtered.length} project codes`;
+
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = filtered.map(row => {
+        const statusClass = row.status === "On Track" ? "ontrack" : row.status === "Watch" ? "watch" : "behind";
+        return `
+          <tr>
+            <td><strong>${row.projectCode}</strong></td>
+            <td>${row.projectName}</td>
+            <td>${currency(row.requirements)}</td>
+            <td>${currency(row.commitments)}</td>
+            <td>${currency(row.obligations)}</td>
+            <td>${currency(row.expenditures)}</td>
+            <td><strong>${currency(row.availableBalance)}</strong></td>
+            <td>
+              <div>${percent(row.obligationRate)}</div>
+              <div class="bar"><div class="fill" style="width:${Math.min(row.obligationRate, 100)}%"></div></div>
+            </td>
+            <td><span class="badge ${statusClass}">${row.status}</span></td>
+          </tr>
+        `;
+      }).join("");
+
+      const balanceLabels = filtered.map(x => x.projectCode);
+      const obligationData = filtered.map(x => x.obligations);
+      const availableData = filtered.map(x => x.availableBalance);
+
+      const statusCounts = {
+        "On Track": filtered.filter(x => x.status === "On Track").length,
+        "Watch": filtered.filter(x => x.status === "Watch").length,
+        "Behind": filtered.filter(x => x.status === "Behind").length,
+      };
+
+      if (balanceChart) balanceChart.destroy();
+      if (statusChart) statusChart.destroy();
+
+      balanceChart = new Chart(document.getElementById("balanceChart"), {
+        type: "bar",
+        data: {
+          labels: balanceLabels,
+          datasets: [
+            { label: "Obligations", data: obligationData, backgroundColor: "#1d4ed8" },
+            { label: "Available", data: availableData, backgroundColor: "#0f766e" }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "top" },
+            tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${currency(ctx.parsed.y)}` } }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: (value) => "$" + (value / 1000000).toFixed(1) + "M"
+              }
+            }
+          }
+        }
+      });
+
+      statusChart = new Chart(document.getElementById("statusChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["On Track", "Watch", "Behind"],
+          datasets: [{
+            data: [statusCounts["On Track"], statusCounts["Watch"], statusCounts["Behind"]],
+            backgroundColor: ["#1d4ed8", "#d97706", "#b91c1c"]
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } }
+        }
+      });
+    }
+
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const term = e.target.value.trim().toLowerCase();
+      const filtered = normalizedData.filter(row => {
+        return !term ||
+          row.projectCode.toLowerCase().includes(term) ||
+          row.projectName.toLowerCase().includes(term) ||
+          row.status.toLowerCase().includes(term);
+      });
+      render(filtered);
+    });
+
+    render(normalizedData);
+  </script>
+</body>
+</html>
