@@ -1,123 +1,715 @@
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>PEO CVN OPN Dashboard</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-<style>
-body{font-family:Segoe UI,Arial;background:#0b1220;color:white;margin:0;padding:20px}
-.panel{background:#121b2e;border-radius:14px;padding:16px;margin-bottom:18px}
-h1{margin-top:0}
-table{width:100%;border-collapse:collapse}
-th,td{padding:8px;border-bottom:1px solid #2a3957}
-td.num{text-align:right}
-.status{padding:4px 8px;border-radius:8px;font-size:12px}
-.good{background:#1f6f3d}
-.watch{background:#7a5d15}
-.risk{background:#7a1c1c}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
-canvas{max-height:360px}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PEO CVN OPN Management Snapshot</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+  <style>
+    :root{
+      --bg:#0a1220;
+      --panel:#111b2e;
+      --panel2:#18253d;
+      --line:#2b3b5d;
+      --text:#e7eef9;
+      --muted:#9cb0cd;
+      --blue:#58a8ff;
+      --teal:#1abda8;
+      --gold:#f0bf50;
+      --red:#ef7e7e;
+      --green:#6fdb97;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Segoe UI, Arial, sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,#07101b 0%, #0b1322 100%);
+    }
+    .wrap{max-width:1600px;margin:0 auto;padding:22px}
+    .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+    h1{margin:0;font-size:30px;letter-spacing:.3px}
+    .sub{color:var(--muted);font-size:13px;line-height:1.5;max-width:1050px;margin-top:6px}
+    .badge{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(88,168,255,.08);
+      color:#d5e7ff;
+      font-size:12px;
+      margin:0 6px 6px 0;
+    }
+    .grid{display:grid;gap:16px}
+    .cards{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:16px}
+    .two{grid-template-columns:1.7fr 1fr;margin-bottom:16px}
+    .three{grid-template-columns:1fr 1fr 1fr;margin-bottom:16px}
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,.24);
+    }
+    .kpi-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.65px}
+    .kpi-value{font-size:30px;font-weight:700;margin-top:8px}
+    .kpi-note{font-size:12px;color:var(--muted);margin-top:6px}
+    .section-title{font-size:18px;font-weight:700;margin:0 0 8px 0}
+    .small-title{font-size:14px;font-weight:700;margin:0 0 8px 0}
+    .chart-box{height:360px}
+    .chart-box.tall{height:420px}
+    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+    .controls{display:flex;gap:10px;flex-wrap:wrap}
+    .btn,.file-label{
+      border:1px solid var(--line);
+      background:var(--panel2);
+      color:var(--text);
+      border-radius:10px;
+      padding:10px 14px;
+      cursor:pointer;
+      font-size:13px;
+      text-decoration:none;
+    }
+    .btn:hover,.file-label:hover{background:#1d2b47}
+    input[type="file"]{display:none}
+    textarea{
+      width:100%;
+      min-height:110px;
+      background:#0e1728;
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      font-family:Consolas, monospace;
+      font-size:12px;
+      resize:vertical;
+    }
+    .table-wrap{overflow:auto}
+    table{width:100%;border-collapse:collapse;min-width:1100px;font-size:13px}
+    th,td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+    th{
+      text-align:left;
+      background:rgba(255,255,255,.04);
+      color:#d9e6fa;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    .status{
+      display:inline-block;
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:700;
+    }
+    .good{background:rgba(111,219,151,.14);color:#b7f3ca;border:1px solid rgba(111,219,151,.3)}
+    .watch{background:rgba(240,191,80,.14);color:#ffe1a0;border:1px solid rgba(240,191,80,.3)}
+    .risk{background:rgba(239,126,126,.14);color:#ffc5c5;border:1px solid rgba(239,126,126,.3)}
+    .note{font-size:12px;color:var(--muted);line-height:1.55}
+    .alloc-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+    .mini{
+      padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)
+    }
+    .mini .kpi-value{font-size:22px}
+    @media (max-width:1280px){
+      .cards,.two,.three,.alloc-kpis{grid-template-columns:1fr}
+      .chart-box,.chart-box.tall{height:320px}
+    }
+  </style>
 </head>
-
 <body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <h1>PEO CVN OPN Appropriation Management Snapshot</h1>
+      <div class="sub">
+        Senior BFM management view for daily review of the OPN portfolio. Focused on project-level available balance, execution status, control budget pressure, hull obligations from Column J, advanced project code totals from Column K, and the budget control section from rows 139 through 152.
+      </div>
+    </div>
+    <div>
+      <span class="badge" id="asOfBadge">As of: --</span>
+      <span class="badge">Appropriation: OPN</span>
+      <span class="badge" id="projectLineBadge">Mgmt Project Lines: 7</span>
+      <span class="badge" id="allocationCountBadge">Allocation Lines: 12</span>
+    </div>
+  </div>
 
-<h1>PEO CVN OPN Management Snapshot</h1>
+  <div class="grid cards">
+    <div class="panel">
+      <div class="kpi-label">Budget Control</div>
+      <div class="kpi-value" id="kpiBudget">$ -</div>
+      <div class="kpi-note">Control value across the seven management project lines</div>
+    </div>
+    <div class="panel">
+      <div class="kpi-label">Commitments</div>
+      <div class="kpi-value" id="kpiCommit">$ -</div>
+      <div class="kpi-note">Immediate pre-obligation pressure</div>
+    </div>
+    <div class="panel">
+      <div class="kpi-label">Obligations</div>
+      <div class="kpi-value" id="kpiObl">$ -</div>
+      <div class="kpi-note">Primary execution indicator</div>
+    </div>
+    <div class="panel">
+      <div class="kpi-label">Actual Costs</div>
+      <div class="kpi-value" id="kpiActual">$ -</div>
+      <div class="kpi-note">Costs incurred against the project line</div>
+    </div>
+    <div class="panel">
+      <div class="kpi-label">Available Budget</div>
+      <div class="kpi-value" id="kpiAvail">$ -</div>
+      <div class="kpi-note">Management headroom remaining</div>
+    </div>
+  </div>
 
-<div class="panel">
-Upload Excel: <input type="file" id="file">
-</div>
+  <div class="grid two">
+    <div class="panel">
+      <div class="section-title">Project-Level Available Budget</div>
+      <div class="note">Sorted high to low so leadership can immediately see where flexibility remains.</div>
+      <div class="chart-box"><canvas id="availableChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="section-title">Execution Status Mix</div>
+      <div class="note">Healthy, Watch, or Risk based on available budget and obligation pressure.</div>
+      <div class="chart-box"><canvas id="statusChart"></canvas></div>
+    </div>
+  </div>
 
-<div class="grid">
-<div class="panel"><h3>Hull Obligations (Column J)</h3><canvas id="hullChart"></canvas></div>
-<div class="panel"><h3>Project Code Totals (Column K)</h3><canvas id="codeChart"></canvas></div>
-</div>
+  <div class="grid three">
+    <div class="panel">
+      <div class="section-title">Budget vs Commitments + Obligations + Available Budget</div>
+      <div class="note">Quick pressure view against each management budget line.</div>
+      <div class="chart-box tall"><canvas id="pressureChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="section-title">Hull Obligations</div>
+      <div class="note">Total obligated amounts by CVN hull from Column J using Funding Level.</div>
+      <div class="chart-box tall"><canvas id="hullChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="section-title">Project Code Totals</div>
+      <div class="note">Advanced view of Column K totals, paired with transaction counts.</div>
+      <div class="chart-box tall"><canvas id="projectCodeChart"></canvas></div>
+    </div>
+  </div>
 
-<div class="panel">
-<h3>Management Detail</h3>
-<table id="table">
-<thead>
-<tr>
-<th>Code</th>
-<th>Name</th>
-<th>Budget</th>
-<th>Commitments</th>
-<th>Obligations</th>
-<th>Actual</th>
-<th>Remaining</th>
-<th>Status</th>
-</tr>
-</thead>
-<tbody></tbody>
-</table>
+  <div class="grid two">
+    <div class="panel">
+      <div class="section-title">Allocation Control View</div>
+      <div class="note">Rows 139 through 152 from the workbook, including remaining balance and status. Negative remaining balance is marked Risk.</div>
+      <div class="alloc-kpis">
+        <div class="mini">
+          <div class="kpi-label">Full Allocation</div>
+          <div class="kpi-value" id="allocFull">$ -</div>
+        </div>
+        <div class="mini">
+          <div class="kpi-label">Current Allocation</div>
+          <div class="kpi-value" id="allocCurrent">$ -</div>
+        </div>
+        <div class="mini">
+          <div class="kpi-label">Auth / Com / Obl</div>
+          <div class="kpi-value" id="allocAuth">$ -</div>
+        </div>
+        <div class="mini">
+          <div class="kpi-label">Remaining Balance</div>
+          <div class="kpi-value" id="allocRemain">$ -</div>
+        </div>
+      </div>
+      <div class="chart-box tall"><canvas id="allocChart"></canvas></div>
+    </div>
+
+    <div class="panel">
+      <div class="section-title">Daily Update Controls</div>
+      <div class="note">
+        Upload the workbook to refresh the allocation control section, hull obligation chart, and project code totals.  
+        The management detail table below is driven by the seven-line management snapshot and can be updated from the paste box.
+        <br><br>
+        Paste format:
+        <strong>Code | Name | Budget | Commitments | Obligations | Actual Costs | Available Budget</strong>
+      </div>
+      <div class="controls" style="margin-top:14px">
+        <label class="file-label" for="excelUpload">Upload OPN Workbook</label>
+        <input id="excelUpload" type="file" accept=".xlsx,.xlsm,.xls" />
+        <button class="btn" id="applyPasteBtn">Apply Pasted Data</button>
+        <button class="btn" id="saveBtn">Save Local Copy</button>
+        <button class="btn" id="resetBtn">Reset Sample Data</button>
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      </div>
+      <div style="margin-top:14px">
+        <div class="small-title">Quick Paste Refresh</div>
+        <textarea id="pasteBox">LT160|MACHINERY PLANT UPGRADES (MPU)|5647537.00|246874.96|4469032.27|153033.55|778596.22
+LT8IN|LT8IN Install|26914099.00|81745.00|6823338.83|13538113.50|6470901.67
+LT120|SEA05 PROPULSION PLANT INSPECTION|170000.00|0.00|5424.75|134575.25|30000.00
+LT830|SEA05 PRODUCTION ENGINEERING|40000.00|0.00|343.04|39656.96|0.00
+LT331|CVN 78|12731203.14|1829955.82|2911071.19|7251025.84|739150.29
+LT330|CYBER SECURITY|12209366.00|137745.51|5890798.80|5793250.51|387571.18
+LT335|CVN Training and Equipment (Logistics)|7381793.40|0.00|7380797.86|995.54|0.00</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-bottom:16px">
+    <div class="section-title">Management Detail Table</div>
+    <div class="note">Accounting-style dollar format for management review. Status logic is based on available budget and obligation pressure.</div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Project Code</th>
+            <th>Project Name</th>
+            <th>Budget</th>
+            <th>Commitments</th>
+            <th>Obligations</th>
+            <th>Actual Costs</th>
+            <th>Available Budget</th>
+            <th>Commit %</th>
+            <th>Obl %</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="managementBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">Allocation Detail Table</div>
+    <div class="note">Negative remaining balance is automatically marked Risk.</div>
+    <div class="table-wrap" style="margin-top:10px">
+      <table>
+        <thead>
+          <tr>
+            <th>Project Code</th>
+            <th>Project Name</th>
+            <th>Full Allocation</th>
+            <th>Current Allocation</th>
+            <th>Auth / Com / Obl</th>
+            <th>Remaining Balance</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="allocationBody"></tbody>
+      </table>
+    </div>
+  </div>
 </div>
 
 <script>
+const DEFAULT_MANAGEMENT = [
+  {code:"LT160", name:"MACHINERY PLANT UPGRADES (MPU)", budget:5647537.00, commitments:246874.96, obligations:4469032.27, actualCosts:153033.55, availableBudget:778596.22},
+  {code:"LT8IN", name:"LT8IN Install", budget:26914099.00, commitments:81745.00, obligations:6823338.83, actualCosts:13538113.50, availableBudget:6470901.67},
+  {code:"LT120", name:"SEA05 PROPULSION PLANT INSPECTION", budget:170000.00, commitments:0.00, obligations:5424.75, actualCosts:134575.25, availableBudget:30000.00},
+  {code:"LT830", name:"SEA05 PRODUCTION ENGINEERING", budget:40000.00, commitments:0.00, obligations:343.04, actualCosts:39656.96, availableBudget:0.00},
+  {code:"LT331", name:"CVN 78", budget:12731203.14, commitments:1829955.82, obligations:2911071.19, actualCosts:7251025.84, availableBudget:739150.29},
+  {code:"LT330", name:"CYBER SECURITY", budget:12209366.00, commitments:137745.51, obligations:5890798.80, actualCosts:5793250.51, availableBudget:387571.18},
+  {code:"LT335", name:"CVN Training and Equipment (Logistics)", budget:7381793.40, commitments:0.00, obligations:7380797.86, actualCosts:995.54, availableBudget:0.00}
+];
 
+const DEFAULT_ALLOCATION = {
+  asOf:"3/13/26",
+  rows:[
+    {code:"LT120", name:"Multi-purpose Carriers (SEA 05)", fullAllocation:170000.00, currentAllocation:170000.00, authComObl:170000.00, remainingBalance:0.00},
+    {code:"LT160", name:"Machinery Plant Upgrades (MPU)", fullAllocation:7884000.00, currentAllocation:5647537.00, authComObl:4928003.70, remainingBalance:719533.30},
+    {code:"LT307", name:"Carrier Canned Lube Oil Pump (LOSP)", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
+    {code:"LT314", name:"Carrier Oil Water Separator (OWS)", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
+    {code:"LT318", name:"Passive Countermeasures System (PCMS) COMPLETED", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
+    {code:"LT327", name:"Modular Refrigeration System (MRS)", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
+    {code:"LT330", name:"CVN Cybersecurity", fullAllocation:13760000.00, currentAllocation:12209366.00, authComObl:12384263.68, remainingBalance:-174897.68},
+    {code:"LT331", name:"CVN 78 Modernization", fullAllocation:0.00, currentAllocation:12731203.14, authComObl:13728831.11, remainingBalance:-997627.97},
+    {code:"LT332", name:"CVN Mobile Cleaning, Recovery & Recycling System (MCRRS)", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
+    {code:"LT335", name:"CVN Training and Equipment (Logistics)", fullAllocation:17836000.00, currentAllocation:7381793.40, authComObl:7381793.40, remainingBalance:0.00},
+    {code:"LT830", name:"Carrier Production Engineering (SEA 05)", fullAllocation:40000.00, currentAllocation:40000.00, authComObl:40000.00, remainingBalance:0.00},
+    {code:"LT8IN", name:"OPN Install", fullAllocation:15404000.00, currentAllocation:26914099.00, authComObl:25352660.36, remainingBalance:1561438.64}
+  ]
+};
+
+const DEFAULT_HULLS = [
+  {hull:"CVN 69", amount:945551.00},
+  {hull:"CVN 70", amount:429067.00},
+  {hull:"CVN 72", amount:0.00},
+  {hull:"CVN 73", amount:839991.00},
+  {hull:"CVN 76", amount:756165.00},
+  {hull:"CVN 77", amount:195929.00},
+  {hull:"CVN 78", amount:1556186.92}
+];
+
+const DEFAULT_CODES = [
+  {code:"INSTALLS", amount:6721829.63, count:42},
+  {code:"CVN 78", amount:1556186.92, count:18},
+  {code:"CYBER", amount:2582990.48, count:9},
+  {code:"MPU", amount:121229.12, count:1}
+];
+
+let managementData = loadLocal("opn_mgmt_final", DEFAULT_MANAGEMENT);
+let allocationData = loadLocal("opn_alloc_final", DEFAULT_ALLOCATION);
+let hullData = loadLocal("opn_hulls_final", DEFAULT_HULLS);
+let codeData = loadLocal("opn_codes_final", DEFAULT_CODES);
+
+let availableChart, statusChart, pressureChart, hullChart, projectCodeChart, allocChart;
+
+function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+function loadLocal(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : clone(fallback);
+  }catch(e){ return clone(fallback); }
+}
+function saveLocal(){
+  localStorage.setItem("opn_mgmt_final", JSON.stringify(managementData));
+  localStorage.setItem("opn_alloc_final", JSON.stringify(allocationData));
+  localStorage.setItem("opn_hulls_final", JSON.stringify(hullData));
+  localStorage.setItem("opn_codes_final", JSON.stringify(codeData));
+}
+function num(v){
+  if (v === null || v === undefined || v === "") return 0;
+  if (typeof v === "number") return v;
+  const s = String(v).replace(/\$/g,"").replace(/,/g,"").replace(/\u00a0/g," ").trim();
+  if (!s || s === "-") return 0;
+  const n = Number(s);
+  return isNaN(n) ? 0 : n;
+}
 function accounting(v){
-if(!v || v===0) return "$ -"
-let n=Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})
-return v<0?`($${n})`:`$${n}`
+  const n = Number(v || 0);
+  if (Math.abs(n) < 0.005) return "$ -";
+  const f = new Intl.NumberFormat("en-US",{minimumFractionDigits:2, maximumFractionDigits:2}).format(Math.abs(n));
+  return n < 0 ? `($${f})` : `$${f}`;
+}
+function whole(v){
+  const n = Number(v || 0);
+  if (Math.abs(n) < 0.5) return "$ -";
+  const f = new Intl.NumberFormat("en-US",{maximumFractionDigits:0}).format(Math.abs(n));
+  return n < 0 ? `($${f})` : `$${f}`;
+}
+function pct(v){ return `${Number(v || 0).toFixed(1)}%`; }
+
+function managementStatus(row){
+  const budget = num(row.budget);
+  const avail = num(row.availableBudget);
+  const oblPct = budget ? (num(row.obligations)/budget)*100 : 0;
+  const availPct = budget ? (avail/budget)*100 : 0;
+  if (avail < 0 || availPct < 3) return {label:"Risk", cls:"risk"};
+  if (availPct < 10 || oblPct > 85) return {label:"Watch", cls:"watch"};
+  return {label:"Healthy", cls:"good"};
+}
+function allocationStatus(row){
+  const rem = num(row.remainingBalance);
+  if (rem < 0) return {label:"Risk", cls:"risk"};
+  if (rem === 0) return {label:"Watch", cls:"watch"};
+  return {label:"Healthy", cls:"good"};
 }
 
-let hullChart,codeChart
+function updateKpis(){
+  const budget = managementData.reduce((a,b)=>a+num(b.budget),0);
+  const commit = managementData.reduce((a,b)=>a+num(b.commitments),0);
+  const obl = managementData.reduce((a,b)=>a+num(b.obligations),0);
+  const actual = managementData.reduce((a,b)=>a+num(b.actualCosts),0);
+  const avail = managementData.reduce((a,b)=>a+num(b.availableBudget),0);
+  const allocFull = allocationData.rows.reduce((a,b)=>a+num(b.fullAllocation),0);
+  const allocCurr = allocationData.rows.reduce((a,b)=>a+num(b.currentAllocation),0);
+  const allocAuth = allocationData.rows.reduce((a,b)=>a+num(b.authComObl),0);
+  const allocRemain = allocationData.rows.reduce((a,b)=>a+num(b.remainingBalance),0);
 
-document.getElementById('file').addEventListener('change', async e=>{
-const file=e.target.files[0]
-const data=await file.arrayBuffer()
-const wb=XLSX.read(data)
-const ws=wb.Sheets[wb.SheetNames[0]]
-const rows=XLSX.utils.sheet_to_json(ws,{header:1})
+  document.getElementById("kpiBudget").textContent = whole(budget);
+  document.getElementById("kpiCommit").textContent = whole(commit);
+  document.getElementById("kpiObl").textContent = whole(obl);
+  document.getElementById("kpiActual").textContent = whole(actual);
+  document.getElementById("kpiAvail").textContent = whole(avail);
 
-let hullTotals={}
-let codeTotals={}
+  document.getElementById("allocFull").textContent = whole(allocFull);
+  document.getElementById("allocCurrent").textContent = whole(allocCurr);
+  document.getElementById("allocAuth").textContent = whole(allocAuth);
+  document.getElementById("allocRemain").textContent = whole(allocRemain);
 
-for(let i=1;i<rows.length;i++){
-let hull=rows[i][9]
-let code=rows[i][10]
-let obl=Number(rows[i][6])||0
-
-if(hull){
-if(!hullTotals[hull]) hullTotals[hull]=0
-hullTotals[hull]+=obl
+  document.getElementById("asOfBadge").textContent = `As of: ${allocationData.asOf || "--"}`;
+  document.getElementById("projectLineBadge").textContent = `Mgmt Project Lines: ${managementData.length}`;
+  document.getElementById("allocationCountBadge").textContent = `Allocation Lines: ${allocationData.rows.length}`;
 }
 
-if(code){
-if(!codeTotals[code]) codeTotals[code]=0
-codeTotals[code]+=obl
+function renderTables(){
+  document.getElementById("managementBody").innerHTML = managementData.map(row=>{
+    const stat = managementStatus(row);
+    const commitPct = num(row.budget) ? (num(row.commitments)/num(row.budget))*100 : 0;
+    const oblPct = num(row.budget) ? (num(row.obligations)/num(row.budget))*100 : 0;
+    return `<tr>
+      <td>${row.code}</td>
+      <td>${row.name}</td>
+      <td class="num">${accounting(row.budget)}</td>
+      <td class="num">${accounting(row.commitments)}</td>
+      <td class="num">${accounting(row.obligations)}</td>
+      <td class="num">${accounting(row.actualCosts)}</td>
+      <td class="num">${accounting(row.availableBudget)}</td>
+      <td class="num">${pct(commitPct)}</td>
+      <td class="num">${pct(oblPct)}</td>
+      <td><span class="status ${stat.cls}">${stat.label}</span></td>
+    </tr>`;
+  }).join("");
+
+  document.getElementById("allocationBody").innerHTML = allocationData.rows.map(row=>{
+    const stat = allocationStatus(row);
+    return `<tr>
+      <td>${row.code}</td>
+      <td>${row.name}</td>
+      <td class="num">${accounting(row.fullAllocation)}</td>
+      <td class="num">${accounting(row.currentAllocation)}</td>
+      <td class="num">${accounting(row.authComObl)}</td>
+      <td class="num">${accounting(row.remainingBalance)}</td>
+      <td><span class="status ${stat.cls}">${stat.label}</span></td>
+    </tr>`;
+  }).join("");
 }
+
+function renderCharts(){
+  if (availableChart) availableChart.destroy();
+  if (statusChart) statusChart.destroy();
+  if (pressureChart) pressureChart.destroy();
+  if (hullChart) hullChart.destroy();
+  if (projectCodeChart) projectCodeChart.destroy();
+  if (allocChart) allocChart.destroy();
+
+  const sortedAvail = [...managementData].sort((a,b)=>num(b.availableBudget)-num(a.availableBudget));
+  availableChart = new Chart(document.getElementById("availableChart"), {
+    type:"bar",
+    data:{
+      labels:sortedAvail.map(r=>r.code),
+      datasets:[{label:"Available Budget", data:sortedAvail.map(r=>num(r.availableBudget)), backgroundColor:"#1abda8"}]
+    },
+    options:{
+      indexAxis:"y",
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=>accounting(ctx.parsed.x)}}
+      },
+      scales:{
+        x:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}},
+        y:{ticks:{color:"#e6eefb"}, grid:{display:false}}
+      }
+    }
+  });
+
+  const counts = {Healthy:0, Watch:0, Risk:0};
+  managementData.forEach(r=>counts[managementStatus(r).label]++);
+  statusChart = new Chart(document.getElementById("statusChart"), {
+    type:"doughnut",
+    data:{
+      labels:["Healthy","Watch","Risk"],
+      datasets:[{data:[counts.Healthy, counts.Watch, counts.Risk], backgroundColor:["#6fdb97","#f0bf50","#ef7e7e"]}]
+    },
+    options:{responsive:true, maintainAspectRatio:false, plugins:{legend:{position:"bottom", labels:{color:"#dde9fb"}}}}
+  });
+
+  pressureChart = new Chart(document.getElementById("pressureChart"), {
+    type:"bar",
+    data:{
+      labels:managementData.map(r=>r.code),
+      datasets:[
+        {label:"Commitments", data:managementData.map(r=>num(r.commitments)), backgroundColor:"#f0bf50"},
+        {label:"Obligations", data:managementData.map(r=>num(r.obligations)), backgroundColor:"#58a8ff"},
+        {label:"Available Budget", data:managementData.map(r=>num(r.availableBudget)), backgroundColor:"#1abda8"}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:"bottom", labels:{color:"#dde9fb"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
+      },
+      scales:{
+        x:{stacked:true, ticks:{color:"#dde9fb"}, grid:{display:false}},
+        y:{stacked:true, ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
+      }
+    }
+  });
+
+  const hullSorted = [...hullData].sort((a,b)=>b.amount-a.amount);
+  hullChart = new Chart(document.getElementById("hullChart"), {
+    type:"bar",
+    data:{
+      labels:hullSorted.map(r=>r.hull),
+      datasets:[{label:"Obligated Amount", data:hullSorted.map(r=>num(r.amount)), backgroundColor:"#58a8ff"}]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:(ctx)=>accounting(ctx.parsed.y)}}
+      },
+      scales:{
+        x:{ticks:{color:"#dde9fb"}, grid:{display:false}},
+        y:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
+      }
+    }
+  });
+
+  const codeSorted = [...codeData].sort((a,b)=>b.amount-a.amount);
+  projectCodeChart = new Chart(document.getElementById("projectCodeChart"), {
+    data:{
+      labels:codeSorted.map(r=>r.code),
+      datasets:[
+        {type:"bar", label:"Obligated Amount", data:codeSorted.map(r=>num(r.amount)), backgroundColor:"#1abda8", yAxisID:"y"},
+        {type:"line", label:"Document Count", data:codeSorted.map(r=>num(r.count)), borderColor:"#f0bf50", backgroundColor:"#f0bf50", tension:.25, yAxisID:"y1"}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:"bottom", labels:{color:"#dde9fb"}},
+        tooltip:{
+          callbacks:{
+            label:(ctx)=>ctx.dataset.yAxisID==="y1"
+              ? `${ctx.dataset.label}: ${ctx.parsed.y}`
+              : `${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{color:"#dde9fb"}, grid:{display:false}},
+        y:{position:"left", ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}},
+        y1:{position:"right", ticks:{color:"#ffe2a4"}, grid:{display:false}}
+      }
+    }
+  });
+
+  const alloc = allocationData.rows;
+  allocChart = new Chart(document.getElementById("allocChart"), {
+    type:"bar",
+    data:{
+      labels:alloc.map(r=>r.code),
+      datasets:[
+        {label:"Current Allocation", data:alloc.map(r=>num(r.currentAllocation)), backgroundColor:"#58a8ff"},
+        {label:"Auth / Com / Obl", data:alloc.map(r=>num(r.authComObl)), backgroundColor:"#f0bf50"},
+        {label:"Remaining Balance", data:alloc.map(r=>num(r.remainingBalance)), backgroundColor:alloc.map(r=>num(r.remainingBalance)<0 ? "#ef7e7e" : "#1abda8")}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{position:"bottom", labels:{color:"#dde9fb"}},
+        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
+      },
+      scales:{
+        x:{ticks:{color:"#dde9fb"}, grid:{display:false}},
+        y:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
+      }
+    }
+  });
 }
 
-let hullLabels=Object.keys(hullTotals)
-let hullData=Object.values(hullTotals)
+function renderAll(){
+  updateKpis();
+  renderTables();
+  renderCharts();
+}
 
-let codeLabels=Object.keys(codeTotals)
-let codeData=Object.values(codeTotals)
+function parsePaste(){
+  const raw = document.getElementById("pasteBox").value.trim();
+  if (!raw) return;
+  const lines = raw.split(/\r?\n/).filter(Boolean);
+  const rows = lines.map(line=>{
+    const p = line.includes("|") ? line.split("|") : line.split(/\t|,/);
+    return {
+      code:(p[0]||"").trim(),
+      name:(p[1]||"").trim(),
+      budget:num(p[2]),
+      commitments:num(p[3]),
+      obligations:num(p[4]),
+      actualCosts:num(p[5]),
+      availableBudget:num(p[6])
+    };
+  }).filter(r=>r.code && r.name);
+  if (rows.length){
+    managementData = rows;
+    saveLocal();
+    renderAll();
+  }
+}
 
-if(hullChart) hullChart.destroy()
-hullChart=new Chart(document.getElementById("hullChart"),{
-type:"bar",
-data:{labels:hullLabels,datasets:[{label:"Obligations",data:hullData,backgroundColor:"#4da3ff"}]},
-options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>"$"+(v/1000000).toFixed(1)+"M"}}}}
-})
+function parseWorkbook(arrayBuffer){
+  const wb = XLSX.read(arrayBuffer, {type:"array", cellDates:true});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json(ws, {header:1, raw:true});
 
-if(codeChart) codeChart.destroy()
-codeChart=new Chart(document.getElementById("codeChart"),{
-data:{
-labels:codeLabels,
-datasets:[
-{type:"bar",label:"Total Obligations",data:codeData,backgroundColor:"#15b8a6"},
-{type:"line",label:"Distribution",data:codeData,borderColor:"#f5b942"}
-]
-},
-options:{scales:{y:{ticks:{callback:v=>"$"+(v/1000000).toFixed(1)+"M"}}}}
-})
+  function val(r,c){
+    return rows[r-1] && rows[r-1][c-1] !== undefined ? rows[r-1][c-1] : null;
+  }
+  function toDate(v){
+    if (v instanceof Date) return v;
+    if (typeof v === "number"){
+      const parsed = XLSX.SSF.parse_date_code(v);
+      return parsed ? new Date(parsed.y, parsed.m-1, parsed.d) : null;
+    }
+    const d = new Date(v);
+    return isNaN(d.getTime()) ? null : d;
+  }
 
-})
+  // Allocation control section rows 140-151
+  allocationData.asOf = String(val(138,2) || "").replace("As of","").trim() || allocationData.asOf;
+  allocationData.rows = [];
+  for (let r=140; r<=151; r++){
+    allocationData.rows.push({
+      name:String(val(r,2) || "").replace(/\u00a0/g," ").trim(),
+      code:String(val(r,6) || "").trim(),
+      fullAllocation:num(val(r,7)),
+      currentAllocation:num(val(r,8)),
+      authComObl:num(val(r,9)),
+      remainingBalance:num(val(r,10))
+    });
+  }
 
+  // Column J hulls and Column K project codes using detail rows 3-138
+  const hullMap = {};
+  const codeMap = {};
+  for (let r=3; r<=138; r++){
+    const amount = num(val(r,7));        // Funding Level
+    const description = String(val(r,10) || "").replace(/\u00a0/g," ").trim(); // Column J
+    const projCode = String(val(r,11) || "").replace(/\u00a0/g," ").trim();    // Column K
+    if (description){
+      const hullMatch = description.match(/CVN\s*\d{2}/i);
+      if (hullMatch){
+        const hull = hullMatch[0].toUpperCase().replace(/\s+/g," ");
+        hullMap[hull] = (hullMap[hull] || 0) + amount;
+      }
+    }
+    if (projCode){
+      if (!codeMap[projCode]) codeMap[projCode] = {code:projCode, amount:0, count:0};
+      codeMap[projCode].amount += amount;
+      codeMap[projCode].count += 1;
+    }
+  }
+
+  hullData = Object.keys(hullMap).sort().map(k=>({hull:k, amount:hullMap[k]}));
+  codeData = Object.values(codeMap).sort((a,b)=>b.amount-a.amount);
+
+  saveLocal();
+  renderAll();
+}
+
+document.getElementById("applyPasteBtn").addEventListener("click", parsePaste);
+document.getElementById("saveBtn").addEventListener("click", ()=>{ saveLocal(); alert("Local browser copy saved."); });
+document.getElementById("resetBtn").addEventListener("click", ()=>{
+  managementData = clone(DEFAULT_MANAGEMENT);
+  allocationData = clone(DEFAULT_ALLOCATION);
+  hullData = clone(DEFAULT_HULLS);
+  codeData = clone(DEFAULT_CODES);
+  saveLocal();
+  renderAll();
+});
+document.getElementById("excelUpload").addEventListener("change", async (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const buf = await file.arrayBuffer();
+  parseWorkbook(buf);
+});
+
+renderAll();
 </script>
-
 </body>
 </html>
