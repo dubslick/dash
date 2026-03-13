@@ -1,715 +1,123 @@
+
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PEO CVN OPN Management Snapshot v2</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
-  <style>
-    :root{
-      --bg:#08111f;
-      --panel:#111b2d;
-      --panel-2:#18253d;
-      --line:#2b3b5d;
-      --text:#e8effb;
-      --muted:#9db0cc;
-      --blue:#56a8ff;
-      --teal:#18bea9;
-      --gold:#f2be4b;
-      --red:#ef7a7a;
-      --green:#6ddb92;
-      --white:#ffffff;
-    }
-    *{box-sizing:border-box}
-    body{
-      margin:0;
-      background:linear-gradient(180deg,#07101b 0%, #091424 100%);
-      color:var(--text);
-      font-family:Segoe UI, Arial, sans-serif;
-    }
-    .wrap{max-width:1600px;margin:0 auto;padding:22px}
-    .top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:18px}
-    h1{margin:0;font-size:30px;letter-spacing:.3px}
-    .sub{color:var(--muted);font-size:13px;line-height:1.5;margin-top:6px;max-width:980px}
-    .badge{
-      display:inline-block;padding:6px 10px;border:1px solid var(--line);border-radius:999px;
-      background:rgba(86,168,255,.08);color:#cde4ff;font-size:12px;margin:0 6px 6px 0
-    }
-    .grid{display:grid;gap:16px}
-    .cards{grid-template-columns:repeat(5,minmax(0,1fr));margin-bottom:16px}
-    .two{grid-template-columns:1.45fr 1fr;margin-bottom:16px}
-    .three{grid-template-columns:1fr 1fr 1fr;margin-bottom:16px}
-    .panel{
-      background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015));
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:16px;
-      box-shadow:0 12px 32px rgba(0,0,0,.22);
-    }
-    .kpi-label{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.6px}
-    .kpi-value{font-size:30px;font-weight:700;margin-top:8px}
-    .kpi-note{font-size:12px;color:var(--muted);margin-top:6px}
-    .section-title{font-size:18px;font-weight:700;margin:0 0 8px 0}
-    .small-title{font-size:14px;font-weight:700;margin:0 0 8px 0}
-    .chart-box{height:360px}
-    .chart-box.tall{height:400px}
-    .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:10px}
-    .controls{display:flex;gap:10px;flex-wrap:wrap}
-    .btn,.file-label{
-      border:1px solid var(--line);
-      background:var(--panel-2);
-      color:var(--text);
-      border-radius:10px;
-      padding:10px 14px;
-      cursor:pointer;
-      font-size:13px;
-      text-decoration:none;
-    }
-    .btn:hover,.file-label:hover{background:#1c2a46}
-    input[type="file"]{display:none}
-    textarea{
-      width:100%;min-height:122px;background:#0d1728;color:var(--text);border:1px solid var(--line);
-      border-radius:12px;padding:12px;font-family:Consolas, monospace;font-size:12px;resize:vertical
-    }
-    .table-wrap{overflow:auto}
-    table{width:100%;border-collapse:collapse;min-width:1180px;font-size:13px}
-    th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-    th{background:rgba(255,255,255,.04);font-size:12px;text-transform:uppercase;letter-spacing:.4px;color:#d8e5fa}
-    td.num{text-align:right;font-variant-numeric:tabular-nums}
-    .status{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}
-    .s-good{background:rgba(109,219,146,.14);color:#a7f0be;border:1px solid rgba(109,219,146,.28)}
-    .s-watch{background:rgba(242,190,75,.14);color:#ffd98b;border:1px solid rgba(242,190,75,.28)}
-    .s-risk{background:rgba(239,122,122,.14);color:#ffc0c0;border:1px solid rgba(239,122,122,.28)}
-    .foot,.note-box{font-size:12px;color:var(--muted);line-height:1.55}
-    .alloc-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-    .mini-kpi{padding:12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
-    .mini-kpi .kpi-value{font-size:22px}
-    @media (max-width:1250px){
-      .cards,.two,.three,.alloc-grid{grid-template-columns:1fr}
-      .chart-box,.chart-box.tall{height:320px}
-    }
-  </style>
+<meta charset="UTF-8">
+<title>PEO CVN OPN Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<style>
+body{font-family:Segoe UI,Arial;background:#0b1220;color:white;margin:0;padding:20px}
+.panel{background:#121b2e;border-radius:14px;padding:16px;margin-bottom:18px}
+h1{margin-top:0}
+table{width:100%;border-collapse:collapse}
+th,td{padding:8px;border-bottom:1px solid #2a3957}
+td.num{text-align:right}
+.status{padding:4px 8px;border-radius:8px;font-size:12px}
+.good{background:#1f6f3d}
+.watch{background:#7a5d15}
+.risk{background:#7a1c1c}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+canvas{max-height:360px}
+</style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <h1>PEO CVN OPN Appropriation Management Snapshot</h1>
-        <div class="sub">
-          Management view focused on OPN control budget, commitments, obligations, actual costs, available budget, monthly obligation flow by fiscal month, and the 12 project code allocation control chart. Built for daily refresh.
-        </div>
-      </div>
-      <div>
-        <span class="badge" id="asOfBadge">As of: --</span>
-        <span class="badge">Appropriation: OPN</span>
-        <span class="badge" id="projectCountBadge">Mgmt Project Lines: --</span>
-        <span class="badge">Allocation Codes: 12</span>
-      </div>
-    </div>
 
-    <div class="grid cards">
-      <div class="panel">
-        <div class="kpi-label">Budget Control</div>
-        <div class="kpi-value" id="kpiBudget">$-</div>
-        <div class="kpi-note">Control value across management project lines</div>
-      </div>
-      <div class="panel">
-        <div class="kpi-label">Commitments</div>
-        <div class="kpi-value" id="kpiCommit">$-</div>
-        <div class="kpi-note">Immediate pre-obligation pressure</div>
-      </div>
-      <div class="panel">
-        <div class="kpi-label">Obligations</div>
-        <div class="kpi-value" id="kpiObl">$-</div>
-        <div class="kpi-note">Primary execution status indicator</div>
-      </div>
-      <div class="panel">
-        <div class="kpi-label">Actual Costs</div>
-        <div class="kpi-value" id="kpiActual">$-</div>
-        <div class="kpi-note">Costs incurred against the project line</div>
-      </div>
-      <div class="panel">
-        <div class="kpi-label">Available Budget</div>
-        <div class="kpi-value" id="kpiAvail">$-</div>
-        <div class="kpi-note">Management headroom remaining</div>
-      </div>
-    </div>
+<h1>PEO CVN OPN Management Snapshot</h1>
 
-    <div class="grid two">
-      <div class="panel">
-        <div class="section-title">Available Budget by Management Project</div>
-        <div class="sub">Accounting-style comparison for the current seven management lines.</div>
-        <div class="chart-box"><canvas id="availableChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="section-title">Execution Status Mix</div>
-        <div class="sub">Healthy, Watch, and Risk based on remaining budget and obligation pressure.</div>
-        <div class="chart-box"><canvas id="statusChart"></canvas></div>
-      </div>
-    </div>
+<div class="panel">
+Upload Excel: <input type="file" id="file">
+</div>
 
-    <div class="grid three">
-      <div class="panel">
-        <div class="section-title">Monthly Obligations by Fiscal Month</div>
-        <div class="sub">Uses workbook transaction detail by actual obligation date. Fiscal year starts in October.</div>
-        <div class="chart-box tall"><canvas id="monthlyChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="section-title">Column K Tallied by Project Code</div>
-        <div class="sub">Funding level summed by Column K project code, with transaction counts overlaid.</div>
-        <div class="chart-box tall"><canvas id="projectCodeTallyChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="section-title">Budget Pressure by Management Project</div>
-        <div class="sub">Budget control against commitments, obligations, and available budget.</div>
-        <div class="chart-box tall"><canvas id="stackedChart"></canvas></div>
-      </div>
-    </div>
+<div class="grid">
+<div class="panel"><h3>Hull Obligations (Column J)</h3><canvas id="hullChart"></canvas></div>
+<div class="panel"><h3>Project Code Totals (Column K)</h3><canvas id="codeChart"></canvas></div>
+</div>
 
-    <div class="grid two">
-      <div class="panel">
-        <div class="toolbar">
-          <div>
-            <div class="section-title">12 Project Code Allocation Control</div>
-            <div class="sub">Rows 140-151 from the workbook. All 12 project codes are retained, including zero-value lines.</div>
-          </div>
-        </div>
-        <div class="chart-box tall"><canvas id="allocationChart"></canvas></div>
-      </div>
-      <div class="panel">
-        <div class="section-title">Allocation Totals</div>
-        <div class="alloc-grid">
-          <div class="mini-kpi">
-            <div class="kpi-label">Full Allocation</div>
-            <div class="kpi-value" id="allocFull">$-</div>
-          </div>
-          <div class="mini-kpi">
-            <div class="kpi-label">Current Allocation</div>
-            <div class="kpi-value" id="allocCurrent">$-</div>
-          </div>
-          <div class="mini-kpi">
-            <div class="kpi-label">Auth / Com / Obl</div>
-            <div class="kpi-value" id="allocAuth">$-</div>
-          </div>
-          <div class="mini-kpi">
-            <div class="kpi-label">Remaining Balance</div>
-            <div class="kpi-value" id="allocRemain">$-</div>
-          </div>
-        </div>
-        <div style="margin-top:16px">
-          <div class="small-title">Daily Update Controls</div>
-          <div class="note-box">
-            Upload the workbook to refresh the monthly obligations chart, the Column K tally, and the 12 project code allocation control section. For the management detail table, either keep your current seven-line set or paste a fresh snapshot using this order:
-            <br><br>
-            <strong>Code | Name | Budget | Commitments | Obligations | Actual Costs | Available Budget</strong>
-          </div>
-          <div class="controls" style="margin-top:14px">
-            <label class="file-label" for="excelUpload">Upload OPN Workbook</label>
-            <input id="excelUpload" type="file" accept=".xlsx,.xlsm,.xls" />
-            <button class="btn" id="applyPasteBtn">Apply Pasted Data</button>
-            <button class="btn" id="saveBtn">Save Local Copy</button>
-            <button class="btn" id="resetBtn">Reset Sample Data</button>
-            <button class="btn" onclick="window.print()">Print / Save PDF</button>
-          </div>
-          <div style="margin-top:12px">
-            <textarea id="pasteBox">LT160|Machinery Plant Upgrades|5647537.00|246874.96|4469032.27|153033.55|778596.22
-LT8IN|OPN Install|26914099.00|81745.00|6823338.83|13538113.50|6470901.67
-LT120|SEA05 Propulsion Plant|170000.00|0.00|5424.75|134575.25|30000.00
-LT830|SEA05 Production Engineering|40000.00|0.00|343.04|39656.96|0.00
-LT331|CVN 78 Modernization|12731203.14|1829955.82|2911071.19|7251025.84|739150.29
-LT330|CVN Cybersecurity|12209366.00|137745.51|5890798.80|5793250.51|387571.18
-LT335|CVN Training and Equipment|7381793.40|0.00|7380797.86|995.54|0.00</textarea>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="panel" style="margin-bottom:16px">
-      <div class="section-title">Management Detail Table</div>
-      <div class="sub">Displayed in accounting format for management review.</div>
-      <div class="table-wrap" style="margin-top:10px">
-        <table>
-          <thead>
-            <tr>
-              <th>Project Code</th>
-              <th>Project Name</th>
-              <th>Budget</th>
-              <th>Commitments</th>
-              <th>Obligations</th>
-              <th>Actual Costs</th>
-              <th>Available Budget</th>
-              <th>Commit %</th>
-              <th>Obl %</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-          <tbody id="dataBody"></tbody>
-        </table>
-      </div>
-      <div class="foot">Status logic: Healthy when available budget is at least 10% of budget. Watch when available budget is between 3% and 10% or obligations exceed 85%. Risk when available budget is below 3% or negative.</div>
-    </div>
-
-    <div class="panel">
-      <div class="section-title">12 Project Code Allocation Detail</div>
-      <div class="sub">Chart support table drawn directly from the allocation control section.</div>
-      <div class="table-wrap" style="margin-top:10px">
-        <table>
-          <thead>
-            <tr>
-              <th>Project Code</th>
-              <th>Project Name</th>
-              <th>Full Allocation</th>
-              <th>Current Allocation</th>
-              <th>Auth / Com / Obl</th>
-              <th>Remaining Balance</th>
-            </tr>
-          </thead>
-          <tbody id="allocationBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+<div class="panel">
+<h3>Management Detail</h3>
+<table id="table">
+<thead>
+<tr>
+<th>Code</th>
+<th>Name</th>
+<th>Budget</th>
+<th>Commitments</th>
+<th>Obligations</th>
+<th>Actual</th>
+<th>Remaining</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody></tbody>
+</table>
+</div>
 
 <script>
-const DEFAULT_SYSTEM_DATA = [
-  { code:"LT160", name:"Machinery Plant Upgrades", budget:5647537.00, commitments:246874.96, obligations:4469032.27, actualCosts:153033.55, availableBudget:778596.22 },
-  { code:"LT8IN", name:"OPN Install", budget:26914099.00, commitments:81745.00, obligations:6823338.83, actualCosts:13538113.50, availableBudget:6470901.67 },
-  { code:"LT120", name:"SEA05 Propulsion Plant", budget:170000.00, commitments:0.00, obligations:5424.75, actualCosts:134575.25, availableBudget:30000.00 },
-  { code:"LT830", name:"SEA05 Production Engineering", budget:40000.00, commitments:0.00, obligations:343.04, actualCosts:39656.96, availableBudget:0.00 },
-  { code:"LT331", name:"CVN 78 Modernization", budget:12731203.14, commitments:1829955.82, obligations:2911071.19, actualCosts:7251025.84, availableBudget:739150.29 },
-  { code:"LT330", name:"CVN Cybersecurity", budget:12209366.00, commitments:137745.51, obligations:5890798.80, actualCosts:5793250.51, availableBudget:387571.18 },
-  { code:"LT335", name:"CVN Training and Equipment", budget:7381793.40, commitments:0.00, obligations:7380797.86, actualCosts:995.54, availableBudget:0.00 }
-];
 
-const DEFAULT_ALLOCATION_DATA = {
-  asOf:"3/3/26",
-  rows:[
-    {name:"Multi-purpose Carriers (SEA 05)", code:"LT120", fullAllocation:170000.00, currentAllocation:170000.00, authComObl:170000.00, remainingBalance:0.00},
-    {name:"Machinery Plant Upgrades (MPU)", code:"LT160", fullAllocation:7884000.00, currentAllocation:4947537.00, authComObl:4928003.70, remainingBalance:19533.30},
-    {name:"Carrier Canned Lube Oil Pump (LOSP)", code:"LT307", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
-    {name:"Carrier Oil Water Separator (OWS)", code:"LT314", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
-    {name:"Passive Countermeasures System (PCMS) COMPLETED", code:"LT318", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
-    {name:"Modular Refrigeration System (MRS)", code:"LT327", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
-    {name:"CVN Cybersecurity", code:"LT330", fullAllocation:13760000.00, currentAllocation:11737366.00, authComObl:12246518.68, remainingBalance:-509152.68},
-    {name:"CVN 78 Modernization", code:"LT331", fullAllocation:0.00, currentAllocation:10279203.14, authComObl:13728831.11, remainingBalance:-3449627.97},
-    {name:"CVN Mobile Cleaning, Recovery & Recycling System (MCRRS)", code:"LT332", fullAllocation:0.00, currentAllocation:0.00, authComObl:0.00, remainingBalance:0.00},
-    {name:"CVN Training and Equipment (Logistics)", code:"LT335", fullAllocation:17836000.00, currentAllocation:7381793.40, authComObl:7381793.40, remainingBalance:0.00},
-    {name:"Carrier Production Engineering (SEA 05)", code:"LT830", fullAllocation:40000.00, currentAllocation:40000.00, authComObl:40000.00, remainingBalance:0.00},
-    {name:"OPN Install", code:"LT8IN", fullAllocation:15404000.00, currentAllocation:20538099.00, authComObl:21638739.36, remainingBalance:-1100640.36}
-  ],
-  totals:{fullAllocation:55094000.00, currentAllocation:55093998.54, authComObl:60133886.25, remainingBalance:-5039887.71}
-};
-
-const DEFAULT_OBLIGATION_FLOW = {
-  fiscalMonths:["Oct 2025","Nov 2025","Dec 2025","Jan 2026","Feb 2026","Mar 2026","Apr 2026","May 2026","Jun 2026","Jul 2026","Aug 2026","Sep 2026"],
-  series:{
-    "INSTALLS":[1364588.00, 1887306.96, 1538350.89, 1575047.78, 356104.02, 420432.98, 0, 0, 0, 0, 0, 0],
-    "MPU":[0, 0, 0, 121229.12, 0, 0, 0, 0, 0, 0, 0, 0],
-    "CVN 78":[823805.94, 287986.18, 281038.43, 693473.71, 265882.68, -79600.02, 0, 0, 0, 0, 0, 0],
-    "CYBER":[0, 0, 0, 0, 330054.46, 2252936.02, 0, 0, 0, 0, 0, 0]
-  },
-  codeTotals:[
-    {code:"INSTALLS", amount:6721829.63, count:42},
-    {code:"CVN 78", amount:1556186.92, count:18},
-    {code:"CYBER", amount:2582990.48, count:9},
-    {code:"MPU", amount:121229.12, count:1}
-  ]
-};
-
-let systemData = loadLocal("opn-system-data-v2", DEFAULT_SYSTEM_DATA);
-let allocationData = loadLocal("opn-allocation-data-v2", DEFAULT_ALLOCATION_DATA);
-let obligationFlow = loadLocal("opn-obligation-flow-v2", DEFAULT_OBLIGATION_FLOW);
-
-let availableChart, statusChart, monthlyChart, projectCodeTallyChart, stackedChart, allocationChart;
-
-function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
-function loadLocal(key, fallback){
-  try{
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : clone(fallback);
-  }catch(e){
-    return clone(fallback);
-  }
-}
-function saveLocal(){
-  localStorage.setItem("opn-system-data-v2", JSON.stringify(systemData));
-  localStorage.setItem("opn-allocation-data-v2", JSON.stringify(allocationData));
-  localStorage.setItem("opn-obligation-flow-v2", JSON.stringify(obligationFlow));
+function accounting(v){
+if(!v || v===0) return "$ -"
+let n=Math.abs(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})
+return v<0?`($${n})`:`$${n}`
 }
 
-function num(v){
-  if (v === null || v === undefined || v === "") return 0;
-  if (typeof v === "number") return v;
-  const cleaned = String(v).replace(/\$/g,"").replace(/,/g,"").replace(/\u00a0/g," ").trim();
-  if (cleaned === "" || cleaned === "-" || cleaned === "$-") return 0;
-  const x = Number(cleaned);
-  return isNaN(x) ? 0 : x;
-}
-function accounting(value){
-  const n = Number(value || 0);
-  if (Math.abs(n) < 0.005) return "$ -";
-  const abs = Math.abs(n);
-  const s = new Intl.NumberFormat("en-US", {minimumFractionDigits:2, maximumFractionDigits:2}).format(abs);
-  return n < 0 ? `($${s})` : `$${s}`;
-}
-function wholeDollar(value){
-  const n = Number(value || 0);
-  if (Math.abs(n) < 0.5) return "$ -";
-  const abs = Math.abs(n);
-  const s = new Intl.NumberFormat("en-US", {maximumFractionDigits:0}).format(abs);
-  return n < 0 ? `($${s})` : `$${s}`;
-}
-function pct(v){ return `${Number(v || 0).toFixed(1)}%`; }
+let hullChart,codeChart
 
-function statusFor(row){
-  const budget = num(row.budget);
-  const avail = num(row.availableBudget);
-  const oblPct = budget ? (num(row.obligations)/budget)*100 : 0;
-  const availPct = budget ? (avail/budget)*100 : 0;
-  if (avail < 0 || availPct < 3) return {label:"Risk", cls:"s-risk"};
-  if (availPct < 10 || oblPct > 85) return {label:"Watch", cls:"s-watch"};
-  return {label:"Healthy", cls:"s-good"};
+document.getElementById('file').addEventListener('change', async e=>{
+const file=e.target.files[0]
+const data=await file.arrayBuffer()
+const wb=XLSX.read(data)
+const ws=wb.Sheets[wb.SheetNames[0]]
+const rows=XLSX.utils.sheet_to_json(ws,{header:1})
+
+let hullTotals={}
+let codeTotals={}
+
+for(let i=1;i<rows.length;i++){
+let hull=rows[i][9]
+let code=rows[i][10]
+let obl=Number(rows[i][6])||0
+
+if(hull){
+if(!hullTotals[hull]) hullTotals[hull]=0
+hullTotals[hull]+=obl
 }
 
-function renderKPIs(){
-  const budget = systemData.reduce((a,b)=>a+num(b.budget),0);
-  const commitments = systemData.reduce((a,b)=>a+num(b.commitments),0);
-  const obligations = systemData.reduce((a,b)=>a+num(b.obligations),0);
-  const actualCosts = systemData.reduce((a,b)=>a+num(b.actualCosts),0);
-  const available = systemData.reduce((a,b)=>a+num(b.availableBudget),0);
-
-  document.getElementById("kpiBudget").textContent = wholeDollar(budget);
-  document.getElementById("kpiCommit").textContent = wholeDollar(commitments);
-  document.getElementById("kpiObl").textContent = wholeDollar(obligations);
-  document.getElementById("kpiActual").textContent = wholeDollar(actualCosts);
-  document.getElementById("kpiAvail").textContent = wholeDollar(available);
-
-  document.getElementById("asOfBadge").textContent = `As of: ${allocationData.asOf || "--"}`;
-  document.getElementById("projectCountBadge").textContent = `Mgmt Project Lines: ${systemData.length}`;
-
-  document.getElementById("allocFull").textContent = wholeDollar(allocationData.totals.fullAllocation);
-  document.getElementById("allocCurrent").textContent = wholeDollar(allocationData.totals.currentAllocation);
-  document.getElementById("allocAuth").textContent = wholeDollar(allocationData.totals.authComObl);
-  document.getElementById("allocRemain").textContent = wholeDollar(allocationData.totals.remainingBalance);
+if(code){
+if(!codeTotals[code]) codeTotals[code]=0
+codeTotals[code]+=obl
+}
 }
 
-function renderTables(){
-  const body = document.getElementById("dataBody");
-  body.innerHTML = systemData.map(row=>{
-    const stat = statusFor(row);
-    const commitPct = num(row.budget) ? (num(row.commitments)/num(row.budget))*100 : 0;
-    const oblPct = num(row.budget) ? (num(row.obligations)/num(row.budget))*100 : 0;
-    return `<tr>
-      <td>${row.code}</td>
-      <td>${row.name}</td>
-      <td class="num">${accounting(row.budget)}</td>
-      <td class="num">${accounting(row.commitments)}</td>
-      <td class="num">${accounting(row.obligations)}</td>
-      <td class="num">${accounting(row.actualCosts)}</td>
-      <td class="num">${accounting(row.availableBudget)}</td>
-      <td class="num">${pct(commitPct)}</td>
-      <td class="num">${pct(oblPct)}</td>
-      <td><span class="status ${stat.cls}">${stat.label}</span></td>
-    </tr>`;
-  }).join("");
+let hullLabels=Object.keys(hullTotals)
+let hullData=Object.values(hullTotals)
 
-  const aBody = document.getElementById("allocationBody");
-  aBody.innerHTML = allocationData.rows.map(row => `<tr>
-      <td>${row.code || ""}</td>
-      <td>${row.name || ""}</td>
-      <td class="num">${accounting(row.fullAllocation)}</td>
-      <td class="num">${accounting(row.currentAllocation)}</td>
-      <td class="num">${accounting(row.authComObl)}</td>
-      <td class="num">${accounting(row.remainingBalance)}</td>
-    </tr>`).join("");
-}
+let codeLabels=Object.keys(codeTotals)
+let codeData=Object.values(codeTotals)
 
-function renderCharts(){
-  if (availableChart) availableChart.destroy();
-  if (statusChart) statusChart.destroy();
-  if (monthlyChart) monthlyChart.destroy();
-  if (projectCodeTallyChart) projectCodeTallyChart.destroy();
-  if (stackedChart) stackedChart.destroy();
-  if (allocationChart) allocationChart.destroy();
+if(hullChart) hullChart.destroy()
+hullChart=new Chart(document.getElementById("hullChart"),{
+type:"bar",
+data:{labels:hullLabels,datasets:[{label:"Obligations",data:hullData,backgroundColor:"#4da3ff"}]},
+options:{plugins:{legend:{display:false}},scales:{y:{ticks:{callback:v=>"$"+(v/1000000).toFixed(1)+"M"}}}}
+})
 
-  const availSorted = [...systemData].sort((a,b)=>num(b.availableBudget)-num(a.availableBudget));
-  availableChart = new Chart(document.getElementById("availableChart"), {
-    type:"bar",
-    data:{
-      labels:availSorted.map(r=>r.code),
-      datasets:[{label:"Available Budget", data:availSorted.map(r=>num(r.availableBudget)), backgroundColor:"#18bea9"}]
-    },
-    options:{
-      indexAxis:"y",
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{display:false},
-        tooltip:{callbacks:{label:(ctx)=>accounting(ctx.parsed.x)}}
-      },
-      scales:{
-        x:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}},
-        y:{ticks:{color:"#e6eefb"}, grid:{display:false}}
-      }
-    }
-  });
+if(codeChart) codeChart.destroy()
+codeChart=new Chart(document.getElementById("codeChart"),{
+data:{
+labels:codeLabels,
+datasets:[
+{type:"bar",label:"Total Obligations",data:codeData,backgroundColor:"#15b8a6"},
+{type:"line",label:"Distribution",data:codeData,borderColor:"#f5b942"}
+]
+},
+options:{scales:{y:{ticks:{callback:v=>"$"+(v/1000000).toFixed(1)+"M"}}}}
+})
 
-  const counts = {Healthy:0, Watch:0, Risk:0};
-  systemData.forEach(r=>counts[statusFor(r).label]++);
-  statusChart = new Chart(document.getElementById("statusChart"), {
-    type:"doughnut",
-    data:{
-      labels:["Healthy","Watch","Risk"],
-      datasets:[{data:[counts.Healthy, counts.Watch, counts.Risk], backgroundColor:["#6ddb92","#f2be4b","#ef7a7a"]}]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{legend:{position:"bottom", labels:{color:"#dce8fb"}}}
-    }
-  });
+})
 
-  const monthColors = ["#56a8ff","#18bea9","#f2be4b","#ef7a7a","#7d8bff","#8ad7a0"];
-  const seriesKeys = Object.keys(obligationFlow.series || {});
-  monthlyChart = new Chart(document.getElementById("monthlyChart"), {
-    type:"bar",
-    data:{
-      labels:obligationFlow.fiscalMonths,
-      datasets:seriesKeys.map((key, idx)=>({
-        label:key,
-        data:obligationFlow.series[key],
-        backgroundColor:monthColors[idx % monthColors.length]
-      }))
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:"bottom", labels:{color:"#dce8fb"}},
-        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
-      },
-      scales:{
-        x:{stacked:true, ticks:{color:"#dce8fb"}, grid:{display:false}},
-        y:{stacked:true, ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
-      }
-    }
-  });
-
-  const codeTotals = [...(obligationFlow.codeTotals || [])].sort((a,b)=>b.amount-a.amount);
-  projectCodeTallyChart = new Chart(document.getElementById("projectCodeTallyChart"), {
-    data:{
-      labels:codeTotals.map(r=>r.code),
-      datasets:[
-        {type:"bar", label:"Funding Level", data:codeTotals.map(r=>r.amount), backgroundColor:"#56a8ff", yAxisID:"y"},
-        {type:"line", label:"Transaction Count", data:codeTotals.map(r=>r.count), borderColor:"#f2be4b", backgroundColor:"#f2be4b", yAxisID:"y1", tension:.25}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:"bottom", labels:{color:"#dce8fb"}},
-        tooltip:{callbacks:{label:(ctx)=>ctx.dataset.yAxisID === "y1" ? `${ctx.dataset.label}: ${ctx.parsed.y}` : `${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
-      },
-      scales:{
-        x:{ticks:{color:"#dce8fb"}, grid:{display:false}},
-        y:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}, position:"left"},
-        y1:{ticks:{color:"#f6d489"}, grid:{display:false}, position:"right"}
-      }
-    }
-  });
-
-  stackedChart = new Chart(document.getElementById("stackedChart"), {
-    type:"bar",
-    data:{
-      labels:systemData.map(r=>r.code),
-      datasets:[
-        {label:"Commitments", data:systemData.map(r=>num(r.commitments)), backgroundColor:"#f2be4b"},
-        {label:"Obligations", data:systemData.map(r=>num(r.obligations)), backgroundColor:"#56a8ff"},
-        {label:"Available Budget", data:systemData.map(r=>num(r.availableBudget)), backgroundColor:"#18bea9"}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:"bottom", labels:{color:"#dce8fb"}},
-        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
-      },
-      scales:{
-        x:{stacked:true, ticks:{color:"#dce8fb"}, grid:{display:false}},
-        y:{stacked:true, ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
-      }
-    }
-  });
-
-  allocationChart = new Chart(document.getElementById("allocationChart"), {
-    type:"bar",
-    data:{
-      labels:allocationData.rows.map(r=>r.code),
-      datasets:[
-        {label:"Current Allocation", data:allocationData.rows.map(r=>num(r.currentAllocation)), backgroundColor:"#56a8ff"},
-        {label:"Auth / Com / Obl", data:allocationData.rows.map(r=>num(r.authComObl)), backgroundColor:"#f2be4b"},
-        {label:"Remaining Balance", data:allocationData.rows.map(r=>num(r.remainingBalance)), backgroundColor:"#18bea9"}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{
-        legend:{position:"bottom", labels:{color:"#dce8fb"}},
-        tooltip:{callbacks:{label:(ctx)=>`${ctx.dataset.label}: ${accounting(ctx.parsed.y)}`}}
-      },
-      scales:{
-        x:{ticks:{color:"#dce8fb"}, grid:{display:false}},
-        y:{ticks:{color:"#bfd0e8", callback:(v)=>"$"+(v/1000000).toFixed(1)+"M"}, grid:{color:"#2b3b5d"}}
-      }
-    }
-  });
-}
-
-function renderAll(){
-  renderKPIs();
-  renderTables();
-  renderCharts();
-}
-
-function applyPaste(){
-  const raw = document.getElementById("pasteBox").value.trim();
-  if (!raw) return;
-  const lines = raw.split(/\r?\n/).filter(Boolean);
-  const parsed = lines.map(line => {
-    const p = line.includes("|") ? line.split("|") : line.split(/\t|,/);
-    return {
-      code:(p[0] || "").trim(),
-      name:(p[1] || "").trim(),
-      budget:num(p[2]),
-      commitments:num(p[3]),
-      obligations:num(p[4]),
-      actualCosts:num(p[5]),
-      availableBudget:num(p[6])
-    };
-  }).filter(r => r.code && r.name);
-  if (parsed.length){
-    systemData = parsed;
-    saveLocal();
-    renderAll();
-  }
-}
-
-function resetAll(){
-  systemData = clone(DEFAULT_SYSTEM_DATA);
-  allocationData = clone(DEFAULT_ALLOCATION_DATA);
-  obligationFlow = clone(DEFAULT_OBLIGATION_FLOW);
-  saveLocal();
-  renderAll();
-}
-
-function excelDateToJS(v){
-  if (v === null || v === undefined || v === "") return null;
-  if (v instanceof Date) return v;
-  if (typeof v === "number"){
-    const o = XLSX.SSF.parse_date_code(v);
-    return o ? new Date(o.y, o.m - 1, o.d) : null;
-  }
-  const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
-}
-
-function monthKey(date){
-  return date.toLocaleString("en-US",{month:"short", year:"numeric"});
-}
-
-function parseWorkbook(wb){
-  const sheetName = wb.SheetNames[0];
-  const ws = wb.Sheets[sheetName];
-
-  function get(addr){
-    const cell = ws[addr];
-    return cell ? cell.v : null;
-  }
-
-  const asOf = get("B138");
-  allocationData.asOf = typeof asOf === "string" ? asOf.replace("As of","").trim() : (asOf || "--");
-
-  const allocRows = [];
-  for (let r = 140; r <= 151; r++){
-    allocRows.push({
-      name: String(get(`B${r}`) || "").replace(/\u00a0/g," ").trim(),
-      code: String(get(`F${r}`) || "").trim(),
-      fullAllocation: num(get(`G${r}`)),
-      currentAllocation: num(get(`H${r}`)),
-      authComObl: num(get(`I${r}`)),
-      remainingBalance: num(get(`J${r}`))
-    });
-  }
-  allocationData.rows = allocRows;
-  allocationData.totals = {
-    fullAllocation: num(get("G152")) || allocRows.reduce((a,b)=>a+num(b.fullAllocation),0),
-    currentAllocation: num(get("H152")) || allocRows.reduce((a,b)=>a+num(b.currentAllocation),0),
-    authComObl: num(get("I152")) || allocRows.reduce((a,b)=>a+num(b.authComObl),0),
-    remainingBalance: num(get("J152")) || allocRows.reduce((a,b)=>a+num(b.remainingBalance),0)
-  };
-
-  const detail = [];
-  for (let r = 3; r <= 119; r++){
-    const dt = excelDateToJS(get(`B${r}`));
-    const amount = num(get(`G${r}`));
-    const projectCode = String(get(`K${r}`) || "").trim();
-    if (!dt || !projectCode) continue;
-    detail.push({date:dt, amount, projectCode});
-  }
-
-  let fiscalStartYear = null;
-  if (detail.length){
-    const first = detail.reduce((min, row) => row.date < min ? row.date : min, detail[0].date);
-    fiscalStartYear = first.getMonth() >= 9 ? first.getFullYear() : first.getFullYear() - 1;
-  } else {
-    const now = new Date();
-    fiscalStartYear = now.getMonth() >= 9 ? now.getFullYear() : now.getFullYear() - 1;
-  }
-
-  const fiscalMonths = [];
-  for (let i = 0; i < 12; i++){
-    const d = new Date(fiscalStartYear, 9 + i, 1);
-    fiscalMonths.push(d.toLocaleString("en-US",{month:"short", year:"numeric"}));
-  }
-
-  const series = {};
-  const tally = {};
-  detail.forEach(row => {
-    if (!series[row.projectCode]) series[row.projectCode] = Array(12).fill(0);
-    const idx = fiscalMonths.indexOf(monthKey(row.date));
-    if (idx >= 0) series[row.projectCode][idx] += row.amount;
-
-    if (!tally[row.projectCode]) tally[row.projectCode] = {code:row.projectCode, amount:0, count:0};
-    tally[row.projectCode].amount += row.amount;
-    tally[row.projectCode].count += 1;
-  });
-
-  obligationFlow = {
-    fiscalMonths,
-    series,
-    codeTotals: Object.values(tally)
-  };
-}
-
-document.getElementById("applyPasteBtn").addEventListener("click", applyPaste);
-document.getElementById("saveBtn").addEventListener("click", ()=>{ saveLocal(); alert("Local browser copy saved."); });
-document.getElementById("resetBtn").addEventListener("click", resetAll);
-
-document.getElementById("excelUpload").addEventListener("change", async (event) => {
-  const file = event.target.files[0];
-  if (!file) return;
-  const data = await file.arrayBuffer();
-  const wb = XLSX.read(data, {type:"array", cellDates:true});
-  parseWorkbook(wb);
-  saveLocal();
-  renderAll();
-});
-
-renderAll();
 </script>
+
 </body>
 </html>
